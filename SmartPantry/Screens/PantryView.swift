@@ -57,6 +57,10 @@ struct PantryView: View {
             .task {
                 await viewModel.loadRecipes()
             }
+            
+            .onReceive(NotificationCenter.default.publisher(for: .recipeDidSaveToPantry)) { _ in
+                            Task { await viewModel.loadRecipes() }
+                        }
             .overlay {
                 if viewModel.isLoading {
                     SmartPantryLoadingView(title: "Loading pantry...", subtitle: "SmartPantry is fetching your saved recipes")

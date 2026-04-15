@@ -1,6 +1,11 @@
 import Foundation
 import Combine
 
+
+extension Notification.Name {
+    static let recipeDidSaveToPantry = Notification.Name("recipeDidSaveToPantry")
+}
+
 @MainActor
 final class AIRecipeViewModel: ObservableObject {
     @Published var prompt = "Create a simple recipe in French with a title, a short summary, ingredients, steps, cook time and number of servings."
@@ -53,6 +58,7 @@ final class AIRecipeViewModel: ObservableObject {
         do {
             try await recipeService.saveRecipe(generatedRecipe)
             successMessage = "Recipe added to your pantry."
+            NotificationCenter.default.post(name: .recipeDidSaveToPantry, object: nil)
             return true
         } catch {
             errorMessage = error.localizedDescription
