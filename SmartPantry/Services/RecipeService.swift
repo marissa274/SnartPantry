@@ -18,9 +18,14 @@ protocol RecipeServiceProtocol {
 
 final class RecipeService: RecipeServiceProtocol {
     private let apiClient: APIClientProtocol
+    private let imageService: RecipeImageService
 
-    init(apiClient: APIClientProtocol = APIClient()) {
+    init(
+        apiClient: APIClientProtocol = APIClient(),
+        imageService: RecipeImageService = RecipeImageService()
+    ) {
         self.apiClient = apiClient
+        self.imageService = imageService
     }
 
     func generateRecipe(input: String, prompt: String) async throws -> AIRecipeResponse {
@@ -37,8 +42,10 @@ final class RecipeService: RecipeServiceProtocol {
         var recipe = envelope.data
 
         do {
-            recipe.imageURL = try await fetchRecipeImage(for: recipe.title)
+            let query = recipe.ingredients.prefix(3).joined(separator: " ")
+            recipe.imageURL = try await imageService.fetchImageURL(for: query)
         } catch {
+            print("Erreur récupération image: \(error.localizedDescription)")
             recipe.imageURL = nil
         }
 
@@ -64,17 +71,5 @@ final class RecipeService: RecipeServiceProtocol {
 
     func deleteRecipe(id: String) async throws {
         try await apiClient.requestVoid(.deleteRecipe(id: id))
-    }
-
-    private func fetchRecipeImage(for title: String) async throws -> String? {
-        let encodedTitle = title.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? title
-
-        guard let url = URL(string: "https://www.themealdb.com/api/json/v1/1/search.php?s=\(encodedTitle)") else {
-            return nil
-        }
-
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let decoded = try JSONDecoder().decode(MealDBSearchResponse.self, from: data)
-        return decoded.meals?.first?.strMealThumb
     }
 }

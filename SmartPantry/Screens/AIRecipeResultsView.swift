@@ -31,17 +31,27 @@ struct AIRecipeResultsView: View {
                 .padding(.top, 20)
 
                 // 🔥 IMAGE (NEW)
-                if let imageURL = generatedRecipe.imageURL,
+                if let imageURL = normalizedImageURL,
                    let url = URL(string: imageURL) {
 
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    } placeholder: {
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(Color.gray.opacity(0.1))
-                            .overlay(ProgressView())
+                    AsyncImage(url: url) { phase in
+                                            switch phase {
+                                            case .success(let image):
+                                                image
+                                                    .resizable()
+                                                    .scaledToFill()
+                                            case .empty:
+                                                RoundedRectangle(cornerRadius: 24)
+                                                    .fill(Color.gray.opacity(0.1))
+                                                    .overlay(ProgressView())
+                                            case .failure:
+                                                fallbackImage
+                                            @unknown default:
+                                                fallbackImage
+                                            }
+                        
+                        
+                        
                     }
                     .frame(height: 220)
                     .clipShape(RoundedRectangle(cornerRadius: 24))
@@ -49,12 +59,7 @@ struct AIRecipeResultsView: View {
 
                 } else {
                     // fallback
-                    Image("food")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(height: 220)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
-                        .padding(.horizontal, 20)
+                    fallbackImage
                 }
 
                 // 🔥 INGREDIENTS SCROLLER
@@ -165,8 +170,36 @@ struct AIRecipeResultsView: View {
                     subtitle: "SmartPantry is adding it to your pantry"
                 )
             }
+            
+            
         }
     }
+    
+    private var normalizedImageURL: String? {
+           guard let raw = generatedRecipe.imageURL?.trimmingCharacters(in: .whitespacesAndNewlines),
+                 !raw.isEmpty else {
+               return nil
+           }
+
+           if raw.hasPrefix("//") {
+               return "https:\(raw)"
+           }
+
+           if raw.lowercased().hasPrefix("http://") || raw.lowercased().hasPrefix("https://") {
+               return raw
+           }
+
+           return "https://\(raw)"
+       }
+
+       private var fallbackImage: some View {
+           Image("food")
+               .resizable()
+               .scaledToFill()
+               .frame(height: 220)
+               .clipShape(RoundedRectangle(cornerRadius: 24))
+               .padding(.horizontal, 20)
+       }
 }
 #Preview {
     NavigationStack {

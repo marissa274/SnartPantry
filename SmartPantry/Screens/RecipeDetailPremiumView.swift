@@ -14,9 +14,7 @@ struct RecipeDetailPremiumView: View {
         ScrollView {
             VStack(spacing: 0) {
                 ZStack(alignment: .topLeading) {
-                    Image(recipe.imageName)
-                        .resizable()
-                        .scaledToFill()
+                    headerImage
                         .frame(height: 300)
                         .frame(maxWidth: .infinity)
                         .clipped()
@@ -174,6 +172,53 @@ struct RecipeDetailPremiumView: View {
             .frame(maxWidth: .infinity)
         }
     }
+    @ViewBuilder
+        private var headerImage: some View {
+            if let remoteImageURL = normalizedRemoteImageURL,
+               let url = URL(string: remoteImageURL) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    case .failure:
+                        fallbackImage
+                    case .empty:
+                        ProgressView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color.gray.opacity(0.1))
+                    @unknown default:
+                        fallbackImage
+                    }
+                }
+            } else {
+                fallbackImage
+            }
+        }
+
+        private var normalizedRemoteImageURL: String? {
+            guard let raw = recipe.remoteImageURL?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !raw.isEmpty else {
+                return nil
+            }
+
+            if raw.hasPrefix("//") {
+                return "https:\(raw)"
+            }
+
+            if raw.lowercased().hasPrefix("http://") || raw.lowercased().hasPrefix("https://") {
+                return raw
+            }
+
+            return "https://\(raw)"
+        }
+
+        private var fallbackImage: some View {
+            Image(recipe.imageName)
+                .resizable()
+                .scaledToFill()
+        }
 }
 
 #Preview {

@@ -1,7 +1,7 @@
 import Foundation
 
 final class RecipeImageService {
-    private let apiKey = "TON_PEXELS_API_KEY"
+    private let apiKey = "TaG1mvDP1lnGZfY11vKJ8HTzdHpGb9O4kdsU11fjHpXa2ktsImZGUTQx"
 
     func fetchImageURL(for recipeTitle: String) async throws -> String? {
         let query = recipeTitle.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? recipeTitle
@@ -12,9 +12,14 @@ final class RecipeImageService {
         var request = URLRequest(url: url)
         request.setValue(apiKey, forHTTPHeaderField: "Authorization")
 
-        let (data, _) = try await URLSession.shared.data(for: request)
-        let decoded = try JSONDecoder().decode(PexelsSearchResponse.self, from: data)
+        let (data, response) = try await URLSession.shared.data(for: request)
 
+        guard let httpResponse = response as? HTTPURLResponse,
+              200...299 ~= httpResponse.statusCode else {
+            return nil
+        }
+
+        let decoded = try JSONDecoder().decode(PexelsSearchResponse.self, from: data)
         return decoded.photos.first?.src.large
     }
 }
