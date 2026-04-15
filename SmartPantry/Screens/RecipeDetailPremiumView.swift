@@ -4,221 +4,266 @@ struct RecipeDetailPremiumView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var savedRecipesManager: SavedRecipesManager
 
-    @State private var selectedTab = "Ingredients"
-    @State private var portions = 3
-    @State private var showingAudioSteps = false
-
     let recipe: Recipe
 
+    @State private var selectedTab: String = "Ingredients"
+    @State private var portions: Int = 3
+    @State private var showingAudioSteps = false
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                ZStack(alignment: .topLeading) {
-                    headerImage
-                        .frame(height: 300)
-                        .frame(maxWidth: .infinity)
-                        .clipped()
+        ZStack(alignment: .top) {
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
 
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "arrow.left")
-                            .font(.title2)
-                            .foregroundColor(.black)
-                            .padding()
-                            .background(Color.white.opacity(0.7))
-                            .clipShape(Circle())
-                    }
-                    .padding()
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    headerSection
 
-                    HStack {
-                        Spacer()
-                        Button {
-                            savedRecipesManager.toggleSaved(recipe)
-                        } label: {
-                            Text(savedRecipesManager.isSaved(recipe) ? "Saved" : "+ Save")
-                                .font(.subheadline.bold())
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
-                                .background(Color.smartRed.opacity(0.9))
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                        }
-                        .padding()
-                    }
-
-                    VStack {
-                        Spacer()
-                        HStack(spacing: 24) {
-                            Label(recipe.prepTime, systemImage: "clock")
-                            Label("\(portions) portions", systemImage: "person.2")
-                        }
-                        .font(.subheadline)
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Capsule())
-                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-                        .frame(maxWidth: .infinity)
-                        .padding(.bottom, 20)
-                    }
+                    contentCard
+                        .padding(.top, -18)
                 }
-
-                VStack(alignment: .leading, spacing: 20) {
-                    HStack {
-                        Text(recipe.title)
-                            .font(.system(size: 26, weight: .bold))
-                        Spacer()
-                    }
-
-                    HStack {
-                        Button {
-                            if portions > 1 { portions -= 1 }
-                        } label: {
-                            Text("-")
-                                .frame(width: 40, height: 40)
-                        }
-
-                        HStack {
-                            Image(systemName: "bowl.fill")
-                            Text("\(portions) Portions")
-                        }
-                        .frame(maxWidth: .infinity)
-
-                        Button {
-                            portions += 1
-                        } label: {
-                            Text("+")
-                                .frame(width: 40, height: 40)
-                                .background(Color.smartRed)
-                                .foregroundColor(.white)
-                        }
-                    }
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.smartRed.opacity(0.3))
-                    )
-
-                    HStack {
-                        tabButton("Ingredients")
-                        tabButton("Process")
-                    }
-
-                    Divider()
-
-                    if selectedTab == "Ingredients" {
-                        VStack(spacing: 16) {
-                            ForEach(recipe.ingredients, id: \.self) { ingredient in
-                                HStack {
-                                    Image(systemName: "square")
-                                        .foregroundColor(.smartRed)
-                                    Text(ingredient)
-                                    Spacer()
-                                }
-                            }
-                        }
-                    } else {
-                        VStack(alignment: .leading, spacing: 16) {
-                            ForEach(Array(recipe.steps.enumerated()), id: \.offset) { index, step in
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text("STEP \(index + 1)")
-                                        .font(.headline)
-                                        .foregroundColor(.smartRed)
-                                    Text(step)
-                                        .foregroundColor(.gray)
-                                }
-                            }
-
-                            Button {
-                                showingAudioSteps = true
-                            } label: {
-                                Text("Read Recipe")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 56)
-                                    .background(Color.smartRed)
-                                    .cornerRadius(18)
-                            }
-                        }
-                    }
-                }
-                .padding()
-                .background(Color.white)
-                .cornerRadius(30)
-                .offset(y: -20)
+                .padding(.bottom, 24)
             }
+
+            topBar
         }
-        .background(Color(.systemGroupedBackground))
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showingAudioSteps) {
             RecipeAudioStepView(recipe: recipe)
         }
     }
 
+    private var topBar: some View {
+        HStack {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "arrow.left")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(.black)
+                    .frame(width: 52, height: 52)
+                    .background(Color.white.opacity(0.92))
+                    .clipShape(Circle())
+            }
+
+            Spacer()
+
+            Button {
+                savedRecipesManager.toggleSaved(recipe)
+            } label: {
+                Text(savedRecipesManager.isSaved(recipe) ? "Saved" : "+ Save")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 14)
+                    .background(Color.smartRed)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+    }
+
+    private var headerSection: some View {
+        ZStack(alignment: .bottom) {
+            headerImage
+                .frame(height: 300)
+                .frame(maxWidth: .infinity)
+                .clipped()
+
+            HStack(spacing: 28) {
+                Label(recipe.prepTime, systemImage: "clock")
+                Label("\(portions) portions", systemImage: "person.2")
+            }
+            .font(.system(size: 16, weight: .medium))
+            .foregroundColor(.black)
+            .padding(.horizontal, 22)
+            .padding(.vertical, 12)
+            .background(Color(red: 210/255, green: 184/255, blue: 160/255).opacity(0.97))
+            .clipShape(Capsule())
+            .padding(.bottom, 16)
+        }
+    }
+
+    private var contentCard: some View {
+        VStack(alignment: .leading, spacing: 22) {
+            Text(recipe.title)
+                .font(.system(size: 26, weight: .bold))
+                .foregroundColor(.black)
+                .fixedSize(horizontal: false, vertical: true)
+
+            portionsControl
+
+            HStack(spacing: 0) {
+                tabButton("Ingredients")
+                tabButton("Process")
+            }
+
+            Divider()
+
+            if selectedTab == "Ingredients" {
+                ingredientsSection
+            } else {
+                processSection
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 26)
+        .padding(.bottom, 30)
+        .background(
+            RoundedRectangle(cornerRadius: 30)
+                .fill(Color.white)
+        )
+    }
+
+    private var portionsControl: some View {
+        HStack(spacing: 0) {
+            Button {
+                if portions > 1 {
+                    portions -= 1
+                }
+            } label: {
+                Text("-")
+                    .font(.system(size: 28, weight: .medium))
+                    .foregroundColor(.blue)
+                    .frame(width: 58, height: 50)
+            }
+
+            Spacer()
+
+            Text("\(portions) Portions")
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(.black)
+
+            Spacer()
+
+            Button {
+                portions += 1
+            } label: {
+                Text("+")
+                    .font(.system(size: 28, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(width: 58, height: 50)
+                    .background(Color.smartRed)
+            }
+        }
+        .background(Color.white)
+        .overlay(
+            RoundedRectangle(cornerRadius: 0)
+                .stroke(Color.smartRed.opacity(0.22), lineWidth: 1)
+        )
+    }
+
     private func tabButton(_ title: String) -> some View {
         Button {
             selectedTab = title
-        } label: {
-            VStack {
-                Text(title.uppercased())
-                    .font(.subheadline.bold())
-                    .foregroundColor(selectedTab == title ? .smartRed : .gray)
-                if selectedTab == title {
-                    Circle().fill(Color.smartRed).frame(width: 6, height: 6)
+
+            if title == "Process" {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                    showingAudioSteps = true
                 }
+            }
+        } label: {
+            VStack(spacing: 8) {
+                Text(title.uppercased())
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(selectedTab == title ? .smartRed : .gray)
+
+                Circle()
+                    .fill(selectedTab == title ? Color.smartRed : Color.clear)
+                    .frame(width: 10, height: 10)
             }
             .frame(maxWidth: .infinity)
         }
     }
-    @ViewBuilder
-        private var headerImage: some View {
-            if let remoteImageURL = normalizedRemoteImageURL,
-               let url = URL(string: remoteImageURL) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    case .failure:
-                        fallbackImage
-                    case .empty:
-                        ProgressView()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.gray.opacity(0.1))
-                    @unknown default:
-                        fallbackImage
-                    }
+
+    private var ingredientsSection: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            ForEach(recipe.ingredients, id: \.self) { ingredient in
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "square")
+                        .foregroundColor(.smartRed)
+                        .padding(.top, 3)
+
+                    Text(ingredient)
+                        .font(.system(size: 17))
+                        .foregroundColor(.black)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Spacer()
                 }
-            } else {
-                fallbackImage
             }
         }
+    }
 
-        private var normalizedRemoteImageURL: String? {
-            guard let raw = recipe.remoteImageURL?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  !raw.isEmpty else {
-                return nil
+    private var processSection: some View {
+        VStack(alignment: .leading, spacing: 22) {
+            ForEach(Array(recipe.steps.enumerated()), id: \.offset) { index, step in
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("STEP \(index + 1)")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.smartRed)
+
+                    Text(step)
+                        .font(.system(size: 17))
+                        .foregroundColor(.gray)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
+        }
+    }
 
-            if raw.hasPrefix("//") {
-                return "https:\(raw)"
+    @ViewBuilder
+    private var headerImage: some View {
+        if let remoteImageURL = normalizedRemoteImageURL,
+           let url = URL(string: remoteImageURL) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+
+                case .empty:
+                    ZStack {
+                        Color.gray.opacity(0.08)
+                        ProgressView()
+                    }
+
+                case .failure:
+                    fallbackImage
+
+                @unknown default:
+                    fallbackImage
+                }
             }
+        } else {
+            fallbackImage
+        }
+    }
 
-            if raw.lowercased().hasPrefix("http://") || raw.lowercased().hasPrefix("https://") {
-                return raw
-            }
-
-            return "https://\(raw)"
+    private var normalizedRemoteImageURL: String? {
+        guard let raw = recipe.remoteImageURL?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty else {
+            return nil
         }
 
-        private var fallbackImage: some View {
-            Image(recipe.imageName)
-                .resizable()
-                .scaledToFill()
+        if raw.hasPrefix("//") {
+            return "https:\(raw)"
         }
+
+        if raw.lowercased().hasPrefix("http://") || raw.lowercased().hasPrefix("https://") {
+            return raw
+        }
+
+        return "https://\(raw)"
+    }
+
+    private var fallbackImage: some View {
+        Image(recipe.imageName)
+            .resizable()
+            .scaledToFill()
+    }
 }
 
 #Preview {
