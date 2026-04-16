@@ -106,11 +106,7 @@ struct PantryView: View {
 
                 Spacer()
 
-                Button("Logout") {
-                    appState.logout()
-                }
-                .font(.subheadline.weight(.semibold))
-                .foregroundColor(.smartRed)
+               
             }
         }
         .padding(.horizontal, 20)

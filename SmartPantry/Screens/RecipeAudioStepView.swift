@@ -18,6 +18,13 @@ struct RecipeAudioStepView: View {
             VStack(spacing: 20) {
                 Spacer()
                     .frame(height: 90)
+                
+                
+                Text(recipe.title)
+                                 .font(.system(size: 22, weight: .bold))
+                                 .foregroundColor(.smartRed)
+                                 .multilineTextAlignment(.center)
+                                 .padding(.horizontal, 24)
 
                 if hasSteps {
                     Text("STEP \(currentStep + 1)/\(recipe.steps.count)")
@@ -70,7 +77,7 @@ struct RecipeAudioStepView: View {
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    Text("Set the timer")
+                    Text("Recipe details")
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(.smartRed)
                 }

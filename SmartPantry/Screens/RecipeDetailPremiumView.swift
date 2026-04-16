@@ -158,11 +158,7 @@ struct RecipeDetailPremiumView: View {
         Button {
             selectedTab = title
 
-            if title == "Process" {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-                    showingAudioSteps = true
-                }
-            }
+          
         } label: {
             VStack(spacing: 8) {
                 Text(title.uppercased())
@@ -179,6 +175,18 @@ struct RecipeDetailPremiumView: View {
 
     private var ingredientsSection: some View {
         VStack(alignment: .leading, spacing: 18) {
+            Button {
+                showingAudioSteps = true
+            } label: {
+                Label("Open audio mode", systemImage: "speaker.wave.2.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.smartRed)
+                    .clipShape(Capsule())
+            }
+
             ForEach(recipe.ingredients, id: \.self) { ingredient in
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: "square")
