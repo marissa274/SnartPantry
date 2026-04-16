@@ -111,7 +111,7 @@ struct RecipeAudioStepView: View {
 
                 Spacer()
             }
-            .padding(.top, 74)
+            .padding(.top, 14)
         }
         .safeAreaInset(edge: .top) {
             HStack {

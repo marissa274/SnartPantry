@@ -101,7 +101,7 @@ struct RecipeDetailPremiumView: View {
                 Color(red: 210/255, green: 184/255, blue: 160/255).opacity(0.97)
             )
             .clipShape(Capsule())
-            .padding(.bottom, 18)
+            .padding(.bottom, 40)
         }
     }
 

@@ -3,7 +3,7 @@ import SwiftUI
 struct MainTabView: View {
     var body: some View {
         TabView {
-            RecipesHomeView()
+            SmartPantryHomeView()
                 .tabItem {
                     Label("Home", systemImage: "house")
                 }
@@ -27,6 +27,4 @@ struct MainTabView: View {
     }
 }
 
-#Preview {
-    MainTabView()
-}
+
