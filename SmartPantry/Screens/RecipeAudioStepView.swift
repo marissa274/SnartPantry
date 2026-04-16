@@ -11,20 +11,18 @@ struct RecipeAudioStepView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            Color.white
+        ZStack {
+                 Color.white
                 .ignoresSafeArea()
 
             VStack(spacing: 20) {
-                Spacer()
-                    .frame(height: 90)
                 
                 
                 Text(recipe.title)
-                                 .font(.system(size: 22, weight: .bold))
-                                 .foregroundColor(.smartRed)
-                                 .multilineTextAlignment(.center)
-                                 .padding(.horizontal, 24)
+                    .font(.system(size: 22, weight: .bold))
+                   .foregroundColor(.smartRed)
+                   .multilineTextAlignment(.center)
+                   .padding(.horizontal, 24)
 
                 if hasSteps {
                     Text("STEP \(currentStep + 1)/\(recipe.steps.count)")
@@ -68,7 +66,7 @@ struct RecipeAudioStepView: View {
                     }
                     .disabled(!hasSteps || currentStep >= recipe.steps.count - 1)
                 }
-                .padding(.horizontal, 48)
+                .padding(.horizontal, 28)
 
                 VStack(alignment: .leading, spacing: 18) {
                     Text(hasSteps ? recipe.steps[currentStep] : "Return to recipe details and switch to Process to review steps.")
@@ -97,6 +95,10 @@ struct RecipeAudioStepView: View {
 
                 Spacer()
             }
+            
+            .padding(.top, 74)
+          }
+          .safeAreaInset(edge: .top) {
 
             HStack {
                 Button {
@@ -114,6 +116,7 @@ struct RecipeAudioStepView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
+            .padding(.bottom, 6)
         }
         .navigationBarBackButtonHidden(true)
     }

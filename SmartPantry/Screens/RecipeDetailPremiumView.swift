@@ -11,7 +11,7 @@ struct RecipeDetailPremiumView: View {
     @State private var showingAudioSteps = false
 
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack {
             Color(.systemGroupedBackground)
                 .ignoresSafeArea()
 
@@ -22,10 +22,16 @@ struct RecipeDetailPremiumView: View {
                     contentCard
                         .padding(.top, -18)
                 }
+                .padding(.top, 72)
                 .padding(.bottom, 24)
             }
-
-            topBar
+            
+        }
+              .safeAreaInset(edge: .top) {
+                  topBar
+                      .padding(.horizontal, 20)
+                      .padding(.top, 8)
+                      .padding(.bottom, 6)
         }
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showingAudioSteps) {
@@ -60,8 +66,7 @@ struct RecipeDetailPremiumView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 18))
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 8)
+        .frame(maxWidth: .infinity)
     }
 
     private var headerSection: some View {
@@ -70,6 +75,7 @@ struct RecipeDetailPremiumView: View {
                 .frame(height: 300)
                 .frame(maxWidth: .infinity)
                 .clipped()
+            
 
             HStack(spacing: 28) {
                 Label(recipe.prepTime, systemImage: "clock")
