@@ -19,19 +19,21 @@ struct RecipeDetailPremiumView: View {
                 VStack(spacing: 0) {
                     headerSection
 
+                    // Added horizontal padding so the rounded corners are visible
                     contentCard
+                        .padding(.horizontal, 16)
                         .padding(.top, -18)
                 }
                 .padding(.top, 72)
-                .padding(.bottom, 24)
+                // Increased bottom padding so content isn't cramped near the bottom edge
+                .padding(.bottom, 40)
             }
-            
         }
-              .safeAreaInset(edge: .top) {
-                  topBar
-                      .padding(.horizontal, 20)
-                      .padding(.top, 8)
-                      .padding(.bottom, 6)
+        .safeAreaInset(edge: .top) {
+            topBar
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 6)
         }
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showingAudioSteps) {
@@ -75,7 +77,6 @@ struct RecipeDetailPremiumView: View {
                 .frame(height: 300)
                 .frame(maxWidth: .infinity)
                 .clipped()
-            
 
             HStack(spacing: 28) {
                 Label(recipe.prepTime, systemImage: "clock")
@@ -92,20 +93,38 @@ struct RecipeDetailPremiumView: View {
     }
 
     private var contentCard: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            Text(recipe.title)
-                .font(.system(size: 26, weight: .bold))
-                .foregroundColor(.black)
-                .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(alignment: .top) {
+                Text(recipe.title)
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundColor(.black)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer()
+
+                Button {
+                    showingAudioSteps = true
+                } label: {
+                    Label("Audio", systemImage: "speaker.wave.2.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(Color.smartRed)
+                        .clipShape(Capsule())
+                }
+                .accessibilityLabel("Open audio mode")
+            }
 
             portionsControl
 
-            HStack(spacing: 0) {
-                tabButton("Ingredients")
-                tabButton("Process")
+            Picker("", selection: $selectedTab) {
+                Text("Ingredients").tag("Ingredients")
+                Text("Process").tag("Process")
             }
-
-            Divider()
+            .pickerStyle(.segmented)
+            .padding(.top, 4)
+            .padding(.bottom, 4)
 
             if selectedTab == "Ingredients" {
                 ingredientsSection
@@ -114,8 +133,8 @@ struct RecipeDetailPremiumView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 26)
-        .padding(.bottom, 30)
+        .padding(.top, 22)
+        .padding(.bottom, 26)
         .background(
             RoundedRectangle(cornerRadius: 30)
                 .fill(Color.white)
@@ -125,14 +144,13 @@ struct RecipeDetailPremiumView: View {
     private var portionsControl: some View {
         HStack(spacing: 0) {
             Button {
-                if portions > 1 {
-                    portions -= 1
-                }
+                if portions > 1 { portions -= 1 }
             } label: {
-                Text("-")
-                    .font(.system(size: 28, weight: .medium))
-                    .foregroundColor(.blue)
-                    .frame(width: 58, height: 50)
+                Image(systemName: "minus")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.smartRed)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
 
             Spacer()
@@ -146,53 +164,24 @@ struct RecipeDetailPremiumView: View {
             Button {
                 portions += 1
             } label: {
-                Text("+")
-                    .font(.system(size: 28, weight: .medium))
-                    .foregroundColor(.white)
-                    .frame(width: 58, height: 50)
-                    .background(Color.smartRed)
+                Image(systemName: "plus")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.smartRed)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
         }
+        .frame(height: 50)
         .background(Color.white)
         .overlay(
-            RoundedRectangle(cornerRadius: 0)
+            RoundedRectangle(cornerRadius: 12)
                 .stroke(Color.smartRed.opacity(0.22), lineWidth: 1)
         )
-    }
-
-    private func tabButton(_ title: String) -> some View {
-        Button {
-            selectedTab = title
-
-          
-        } label: {
-            VStack(spacing: 8) {
-                Text(title.uppercased())
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(selectedTab == title ? .smartRed : .gray)
-
-                Circle()
-                    .fill(selectedTab == title ? Color.smartRed : Color.clear)
-                    .frame(width: 10, height: 10)
-            }
-            .frame(maxWidth: .infinity)
-        }
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private var ingredientsSection: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Button {
-                showingAudioSteps = true
-            } label: {
-                Label("Open audio mode", systemImage: "speaker.wave.2.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(Color.smartRed)
-                    .clipShape(Capsule())
-            }
-
+        VStack(alignment: .leading, spacing: 14) {
             ForEach(recipe.ingredients, id: \.self) { ingredient in
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: "square")
@@ -206,12 +195,13 @@ struct RecipeDetailPremiumView: View {
 
                     Spacer()
                 }
+                .padding(.vertical, 2)
             }
         }
     }
 
     private var processSection: some View {
-        VStack(alignment: .leading, spacing: 22) {
+        VStack(alignment: .leading, spacing: 16) {
             ForEach(Array(recipe.steps.enumerated()), id: \.offset) { index, step in
                 VStack(alignment: .leading, spacing: 8) {
                     Text("STEP \(index + 1)")
