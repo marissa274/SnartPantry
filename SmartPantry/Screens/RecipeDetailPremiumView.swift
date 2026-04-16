@@ -66,7 +66,7 @@ struct RecipeDetailPremiumView: View {
                     .background(Color.smartRed)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
             }
-          
+            .padding(.trailing, 4)
         }
         .frame(maxWidth: .infinity)
     }
