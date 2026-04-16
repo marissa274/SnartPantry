@@ -1,10 +1,17 @@
 import SwiftUI
+import Combine
 
 struct RecipeAudioStepView: View {
     @Environment(\.dismiss) private var dismiss
 
     let recipe: Recipe
+
     @State private var currentStep: Int = 0
+    @StateObject private var speechManager = RecipeSpeechManager()
+
+    @State private var isAutoPlaying = true
+
+    private let autoAdvanceTimer = Timer.publish(every: 10, on: .main, in: .common).autoconnect()
 
     private var hasSteps: Bool {
         !recipe.steps.isEmpty
@@ -12,17 +19,15 @@ struct RecipeAudioStepView: View {
 
     var body: some View {
         ZStack {
-                 Color.white
+            Color.white
                 .ignoresSafeArea()
 
             VStack(spacing: 20) {
-                
-                
                 Text(recipe.title)
                     .font(.system(size: 22, weight: .bold))
-                   .foregroundColor(.smartRed)
-                   .multilineTextAlignment(.center)
-                   .padding(.horizontal, 24)
+                    .foregroundColor(.smartRed)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
 
                 if hasSteps {
                     Text("STEP \(currentStep + 1)/\(recipe.steps.count)")
@@ -41,7 +46,8 @@ struct RecipeAudioStepView: View {
 
                 HStack {
                     Button {
-                        if currentStep > 0 { currentStep -= 1 }
+                        guard hasSteps, currentStep > 0 else { return }
+                        currentStep -= 1
                     } label: {
                         Image(systemName: "arrow.left")
                             .font(.system(size: 30, weight: .medium))
@@ -51,14 +57,24 @@ struct RecipeAudioStepView: View {
 
                     Spacer()
 
-                    Image(systemName: "speaker.wave.2.fill")
-                        .font(.system(size: 36))
-                        .foregroundColor(Color(red: 223/255, green: 205/255, blue: 193/255))
+                    Button {
+                        toggleSpeech()
+                    } label: {
+                        Image(systemName: isAutoPlaying ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                            .font(.system(size: 36))
+                            .foregroundColor(
+                                isAutoPlaying
+                                ? .smartRed
+                                : Color(red: 223/255, green: 205/255, blue: 193/255)
+                            )
+                    }
+                    .disabled(!hasSteps)
 
                     Spacer()
 
                     Button {
-                        if currentStep < recipe.steps.count - 1 { currentStep += 1 }
+                        guard hasSteps, currentStep < recipe.steps.count - 1 else { return }
+                        currentStep += 1
                     } label: {
                         Image(systemName: "arrow.right")
                             .font(.system(size: 30, weight: .medium))
@@ -75,8 +91,8 @@ struct RecipeAudioStepView: View {
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    Text("Recipe details")
-                        .font(.system(size: 18, weight: .bold))
+                    Text(isAutoPlaying ? "Lecture automatique toutes les 10 secondes" : "Lecture arrêtée")
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.smartRed)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -95,11 +111,9 @@ struct RecipeAudioStepView: View {
 
                 Spacer()
             }
-            
             .padding(.top, 74)
-          }
-          .safeAreaInset(edge: .top) {
-
+        }
+        .safeAreaInset(edge: .top) {
             HStack {
                 Button {
                     dismiss()
@@ -119,6 +133,46 @@ struct RecipeAudioStepView: View {
             .padding(.bottom, 6)
         }
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            startAutoPlayback()
+        }
+        .onChange(of: currentStep) { _, newValue in
+            guard hasSteps, isAutoPlaying else { return }
+            speechManager.speakStep(recipe.steps[newValue])
+        }
+        .onReceive(autoAdvanceTimer) { _ in
+            guard hasSteps, isAutoPlaying else { return }
+
+            if currentStep < recipe.steps.count - 1 {
+                currentStep += 1
+            } else {
+                isAutoPlaying = false
+                speechManager.stop()
+            }
+        }
+        .onDisappear {
+            isAutoPlaying = false
+            speechManager.stop()
+        }
+    }
+
+    private func startAutoPlayback() {
+        guard hasSteps else { return }
+        isAutoPlaying = true
+        speechManager.prepareForPlayback()
+        speechManager.speakStep(recipe.steps[currentStep])
+    }
+
+    private func toggleSpeech() {
+        guard hasSteps else { return }
+
+        if isAutoPlaying {
+            isAutoPlaying = false
+            speechManager.stop()
+        } else {
+            isAutoPlaying = true
+            speechManager.speakStep(recipe.steps[currentStep])
+        }
     }
 
     @ViewBuilder

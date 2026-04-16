@@ -4,6 +4,7 @@ import Combine
 
 final class RecipeSpeechManager: NSObject, ObservableObject {
     private let synthesizer = AVSpeechSynthesizer()
+    private var hasPreparedAudioSession = false
 
     @Published var isSpeaking = false
     @Published var isPaused = false
@@ -13,7 +14,21 @@ final class RecipeSpeechManager: NSObject, ObservableObject {
         synthesizer.delegate = self
     }
 
+    func prepareForPlayback() {
+        guard !hasPreparedAudioSession else { return }
+
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+            try session.setActive(true, options: [])
+            hasPreparedAudioSession = true
+        } catch {
+            // Keep speech available even if session setup fails.
+        }
+    }
+
     func speakStep(_ step: String) {
+        prepareForPlayback()
         stop()
 
         let utterance = AVSpeechUtterance(string: step)
@@ -27,6 +42,7 @@ final class RecipeSpeechManager: NSObject, ObservableObject {
     }
 
     func speakRecipe(title: String, steps: [String]) {
+        prepareForPlayback()
         stop()
 
         let allSteps = steps.enumerated().map {
@@ -66,6 +82,11 @@ final class RecipeSpeechManager: NSObject, ObservableObject {
 
 extension RecipeSpeechManager: AVSpeechSynthesizerDelegate {
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        isSpeaking = false
+        isPaused = false
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
         isSpeaking = false
         isPaused = false
     }
