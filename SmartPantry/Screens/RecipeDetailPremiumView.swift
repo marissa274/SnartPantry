@@ -11,29 +11,28 @@ struct RecipeDetailPremiumView: View {
     @State private var showingAudioSteps = false
 
     var body: some View {
-        ZStack {
-            Color(.systemGroupedBackground)
-                .ignoresSafeArea()
+        GeometryReader { geometry in
+               ZStack(alignment: .top) {
+                   Color(.systemGroupedBackground)
+                       .ignoresSafeArea()
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 0) {
-                    headerSection
+                   ScrollView(showsIndicators: false) {
+                       VStack(spacing: 0) {
+                           headerSection
 
-                    // Added horizontal padding so the rounded corners are visible
-                    contentCard
-                        .padding(.horizontal, 16)
-                        .padding(.top, -18)
+                           contentCard
+                               .padding(.horizontal, 16)
+                               .padding(.top, -18)
+                       }
+                       .padding(.bottom, 40)
                 }
-                .padding(.top, 72)
+                
                 // Increased bottom padding so content isn't cramped near the bottom edge
-                .padding(.bottom, 40)
+                   topBar
+                                      .padding(.horizontal, 20)
+                                      .padding(.top, geometry.safeAreaInsets.top + 8)
             }
-        }
-        .safeAreaInset(edge: .top) {
-            topBar
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .padding(.bottom, 6)
+               .ignoresSafeArea(edges: .top)
         }
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showingAudioSteps) {
@@ -42,7 +41,7 @@ struct RecipeDetailPremiumView: View {
     }
 
     private var topBar: some View {
-        HStack {
+        HStack (spacing: 10) {
             Button {
                 dismiss()
             } label: {
@@ -54,7 +53,7 @@ struct RecipeDetailPremiumView: View {
                     .clipShape(Circle())
             }
 
-            Spacer()
+            Spacer(minLength: 8)
 
             Button {
                 savedRecipesManager.toggleSaved(recipe)
@@ -67,6 +66,7 @@ struct RecipeDetailPremiumView: View {
                     .background(Color.smartRed)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
             }
+          
         }
         .frame(maxWidth: .infinity)
     }
