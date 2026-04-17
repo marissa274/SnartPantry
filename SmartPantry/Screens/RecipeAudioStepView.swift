@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 struct RecipeAudioStepView: View {
     @Environment(\.dismiss) private var dismiss
@@ -11,8 +10,7 @@ struct RecipeAudioStepView: View {
     @StateObject private var speechManager = RecipeSpeechManager()
 
     @State private var isAutoPlaying = true
-
-    private let autoAdvanceTimer = Timer.publish(every: 10, on: .main, in: .common).autoconnect()
+    @State private var autoAdvanceTask: Task<Void, Never>?
 
     private var hasSteps: Bool {
         !recipe.steps.isEmpty
@@ -86,11 +84,15 @@ struct RecipeAudioStepView: View {
                 .padding(.horizontal, 28)
 
                 VStack(alignment: .leading, spacing: 18) {
-                    Text(hasSteps ? recipe.steps[currentStep] : "Return to recipe details and switch to Process to review steps.")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(.black)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
+                    Text(
+                        hasSteps
+                        ? recipe.steps[currentStep]
+                        : "Return to recipe details and switch to Process to review steps."
+                    )
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
 
                     Text(isAutoPlaying ? "Lecture automatique toutes les 10 secondes" : "Lecture arrêtée")
                         .font(.system(size: 16, weight: .semibold))
@@ -137,24 +139,18 @@ struct RecipeAudioStepView: View {
         .onAppear {
             savedRecipesManager.addToHistory(recipe)
             startAutoPlayback()
-            
         }
         .onChange(of: currentStep) { _, newValue in
             guard hasSteps, isAutoPlaying else { return }
+            cancelAutoAdvanceTask()
             speechManager.speakStep(recipe.steps[newValue])
         }
-        .onReceive(autoAdvanceTimer) { _ in
-            guard hasSteps, isAutoPlaying else { return }
-
-            if currentStep < recipe.steps.count - 1 {
-                currentStep += 1
-            } else {
-                isAutoPlaying = false
-                speechManager.stop()
-            }
+        .onChange(of: speechManager.completedUtteranceCount) { _, _ in
+            scheduleAutoAdvanceAfterDelay()
         }
         .onDisappear {
             isAutoPlaying = false
+            cancelAutoAdvanceTask()
             speechManager.stop()
         }
     }
@@ -162,6 +158,7 @@ struct RecipeAudioStepView: View {
     private func startAutoPlayback() {
         guard hasSteps else { return }
         isAutoPlaying = true
+        cancelAutoAdvanceTask()
         speechManager.prepareForPlayback()
         speechManager.speakStep(recipe.steps[currentStep])
     }
@@ -171,11 +168,35 @@ struct RecipeAudioStepView: View {
 
         if isAutoPlaying {
             isAutoPlaying = false
+            cancelAutoAdvanceTask()
             speechManager.stop()
         } else {
             isAutoPlaying = true
+            cancelAutoAdvanceTask()
             speechManager.speakStep(recipe.steps[currentStep])
         }
+    }
+
+    private func scheduleAutoAdvanceAfterDelay() {
+        guard hasSteps, isAutoPlaying else { return }
+        cancelAutoAdvanceTask()
+
+        autoAdvanceTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 10_000_000_000)
+            guard !Task.isCancelled, isAutoPlaying else { return }
+
+            if currentStep < recipe.steps.count - 1 {
+                currentStep += 1
+            } else {
+                isAutoPlaying = false
+                speechManager.stop()
+            }
+        }
+    }
+
+    private func cancelAutoAdvanceTask() {
+        autoAdvanceTask?.cancel()
+        autoAdvanceTask = nil
     }
 
     @ViewBuilder

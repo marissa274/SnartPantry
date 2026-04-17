@@ -8,6 +8,7 @@ final class RecipeSpeechManager: NSObject, ObservableObject {
 
     @Published var isSpeaking = false
     @Published var isPaused = false
+    @Published private(set) var completedUtteranceCount = 0
 
     override init() {
         super.init()
@@ -84,6 +85,7 @@ extension RecipeSpeechManager: AVSpeechSynthesizerDelegate {
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         isSpeaking = false
         isPaused = false
+        completedUtteranceCount += 1
     }
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
