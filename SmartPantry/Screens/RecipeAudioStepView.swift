@@ -3,6 +3,7 @@ import Combine
 
 struct RecipeAudioStepView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var savedRecipesManager: SavedRecipesManager
 
     let recipe: Recipe
 
@@ -134,7 +135,9 @@ struct RecipeAudioStepView: View {
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
+            savedRecipesManager.addToHistory(recipe)
             startAutoPlayback()
+            
         }
         .onChange(of: currentStep) { _, newValue in
             guard hasSteps, isAutoPlaying else { return }
@@ -231,5 +234,6 @@ struct RecipeAudioStepView: View {
 #Preview {
     NavigationStack {
         RecipeAudioStepView(recipe: MockRecipeData.sampleRecipe)
+            .environmentObject(SavedRecipesManager())
     }
 }

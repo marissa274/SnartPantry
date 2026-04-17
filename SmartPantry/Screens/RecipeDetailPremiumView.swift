@@ -47,9 +47,15 @@ struct RecipeDetailPremiumView: View {
             }
             .ignoresSafeArea(edges: .top)
         }
+        .onAppear {
+                  savedRecipesManager.addToHistory(recipe)
+              }
+        
+        
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showingAudioSteps) {
             RecipeAudioStepView(recipe: recipe)
+                .environmentObject(savedRecipesManager)
         }
     }
 

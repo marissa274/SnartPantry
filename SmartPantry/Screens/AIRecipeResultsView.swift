@@ -121,6 +121,9 @@ struct AIRecipeResultsView: View {
                         Task {
                             saveViewModel.generatedRecipe = generatedRecipe
                             let success = await saveViewModel.saveCurrentRecipe()
+                            if success {
+                                savedRecipesManager.markSaved(generatedRecipe.asUIRecipe)
+                        }
                             showSuccess = success
                         }
                     } label: {
